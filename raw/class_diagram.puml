@@ -1,0 +1,89 @@
+@startuml
+
+class Chip {
+ -ChipColor color
+ +getColor()
+}
+
+enum ChipColor {
+ +RED
+ +WHITE
+ +BLACK
+}
+
+class HexNode {
+  - identifier string
+  - stackLength int
+  - chipsStack []Chip
+  - childNodes map[EdgeType]*HexNode
+  + GetIdentifier()
+  + GetChildNodes()
+  + SetChildNode()
+  + traverse(nodePointer)
+  + GetPossibleMovements()
+  + IsEmpty()
+  + GetStackLength()
+  + GetChipStack()
+  + GetTopChip()
+  + AddChip()
+  + Empty()
+  + GetStraightAdjacentOnLevel(level)
+  - _traverseInDirection(edgeType, nodePtr, depth)
+}
+
+class DvonnBoard {
+  - cells map[string]*HexNode: {id to node address map}
+  - initializeBoard()
+  + fillCell (id | position)
+  + defillCells (List<id | position>)
+  + getSnapshot()
+  + getDisconnectedCells(): returns list of disconnected nodes
+  - _getRedChipNode(): returns positions of red chips
+}
+
+class Player {
+  - String name
+  - String id
+  + getName()
+  + getId()
+}
+
+enum GamePhase {
+  + PLACEMENT
+  + MOVEMENT
+}
+
+enum EdgeType {
+  UPPER_EDGE
+  LEFTUPPER_EDGE
+  LEFTBOTTON_EDGE
+  BOTTON_EDGE
+  RIGHTUPPER_EDGE
+  RIGHTBOTTON_EDGE
+}
+
+class DvonnGame {
+  - DvonnBoard board
+  - List<Player> players
+  - Player currentTurnPlayer
+  - GamePhase gamePhase
+  + GetPlayers()
+  + GetCurrentPlayer()
+  + Move(Player, positions...)
+  - _canPlace(player, pos)
+  - _canMove(Player, startPos, endPos)
+  - isPlayerTurnValid()
+  + GetGamePhase()
+  + getLegalMoveAvailableForPlayer()
+}
+
+ChipColor --> Chip : uses
+Chip --> HexNode : uses
+EdgeType --> HexNode : uses
+HexNode --> DvonnBoard : uses
+Player --> DvonnGame : uses
+GamePhase --> DvonnGame : uses
+DvonnBoard --> DvonnGame : uses
+
+
+@enduml
