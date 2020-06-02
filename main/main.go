@@ -2,118 +2,108 @@ package main
 
 import (
 	"../dvonn"
-	"fmt"
 )
 
-func main() {
-	a1 := dvonn.GetHexNode("a1")
-	a2 := dvonn.GetHexNode("a2")
-	a3 := dvonn.GetHexNode("a3")
-	b1 := dvonn.GetHexNode("b1")
-	b2 := dvonn.GetHexNode("b2")
-	b3 := dvonn.GetHexNode("b3")
-	b4 := dvonn.GetHexNode("b4")
-	c1 := dvonn.GetHexNode("c1")
-	c2 := dvonn.GetHexNode("c2")
-	c3 := dvonn.GetHexNode("c3")
-	c4 := dvonn.GetHexNode("c4")
-	c5 := dvonn.GetHexNode("c5")
-	d1 := dvonn.GetHexNode("d1")
-	d2 := dvonn.GetHexNode("d2")
-	d3 := dvonn.GetHexNode("d3")
-	d4 := dvonn.GetHexNode("d4")
-	d5 := dvonn.GetHexNode("d5")
+/*
+  White:A        Black:B
 
-	a1.SetChildNode(dvonn.BOTTON_EDGE, b1)
-	a1.SetChildNode(dvonn.RIGHTUPPER_EDGE, a2)
-	a1.SetChildNode(dvonn.RIGHTBOTTON_EDGE, b2)
+  0.  F1
+  1.            G3
+  2.  E4
+  3.            K5
+  4.  E5
+  5.            C1
+  6.  D5
+  7.            J4
+  8.  E2
+  9.            E1
+ 10.  K3
+ 11.            H4
+ 12.  J2
+ 13.            J5
+ 14.  I3
+ 15.            A1
+ 16.  D2
+ 17.            G4
+ 18.  D3
+ 19.            J3
+ 20.  E3
+ 21.            F5
+ 22.  H5
+ 23.            C3
+ 24.  G5
+ 25.            B2
+ 26.  D1
+ 27.            G2
+ 28.  I5
+ 29.            B4
+ 30.  A3
+ 31.            C5
+ 32.  I1
+ 33.            G1
+ 34.  C2
+ 35.            A2
+ 36.  B1
+ 37.            I4
+ 38.  H1
+ 39.            H2
+ 40.  F2
+ 41.            I2
+ 42.  D4
+ 43.            C4
+ 44.  K4
+ 45.            F3
+ 46.  F4
+ 47.            H3
+ 48.  B3
+ 49.  K3J2
+ 50.            C1D1
+ 51.  G5F5
+ 52.            G1H1
+ 53.  J2H2
+ 54.            H1H3
+ 55.  I1I2
+ 56.            J5K5
+ 57.  H5G4
+ 58.            D1D3
+ 59.  K4J3
+ 60.            B4B3
+ 61.  D2E3
+ 62.            B3D3
+ 63.  D5C5
+ 64.            J4J3
+ 65.  E2F2
+ 66.            B2C2
+ 67.  G4G2
+ 68.            C3D4
+ 69.  F4F5
+ 70.            I4H4
+ 71.  I2G2
+ 72.            E1F2
+ 73.  F5F2
+ 74.            A1B1
+ 75.  E5E4
+ 76.            H4F2
+ 77.  I3H2
+ 78.            F3E3
+ 79.  E4C2
+ 80.            E3H3
+ 81.  C2G2
 
-	a2.SetChildNode(dvonn.LEFTBOTTON_EDGE, a1)
-	a2.SetChildNode(dvonn.BOTTON_EDGE, b2)
-	a2.SetChildNode(dvonn.RIGHTBOTTON_EDGE, b3)
-	a2.SetChildNode(dvonn.RIGHTUPPER_EDGE, a3)
+Black wins.
 
-	a3.SetChildNode(dvonn.LEFTBOTTON_EDGE, a2)
-	a3.SetChildNode(dvonn.BOTTON_EDGE, b3)
-	a3.SetChildNode(dvonn.RIGHTBOTTON_EDGE, b4)
+Status:   LOSE  WIN
+Game pts: 13  104
+ */
 
-	b1.SetChildNode(dvonn.UPPER_EDGE, a1)
-	b1.SetChildNode(dvonn.RIGHTUPPER_EDGE, b2)
-	b1.SetChildNode(dvonn.RIGHTBOTTON_EDGE, c2)
-	b1.SetChildNode(dvonn.BOTTON_EDGE, c1)
+func main () {
+	players := make([]dvonn.Player, 0)
+	player1 := dvonn.GetPlayer("pushpender", "amit123", dvonn.WHITE)
+	player2 := dvonn.GetPlayer("arman", "amit123", dvonn.BLACK)
+	players = append(players, player1)
+	players = append(players, player2)
+	dvonnGame := dvonn.GetDvonnGame(players, player1)
 
-	b2.SetChildNode(dvonn.UPPER_EDGE, a2)
-	b2.SetChildNode(dvonn.RIGHTUPPER_EDGE, b3)
-	b2.SetChildNode(dvonn.RIGHTBOTTON_EDGE, c3)
-	b2.SetChildNode(dvonn.BOTTON_EDGE, c2)
-	b2.SetChildNode(dvonn.LEFTBOTTON_EDGE, b1)
-	b2.SetChildNode(dvonn.LEFTUPPER_EDGE, a1)
-
-	b3.SetChildNode(dvonn.UPPER_EDGE, a3)
-	b3.SetChildNode(dvonn.RIGHTUPPER_EDGE, b4)
-	b3.SetChildNode(dvonn.RIGHTBOTTON_EDGE, c4)
-	b3.SetChildNode(dvonn.BOTTON_EDGE, c3)
-	b3.SetChildNode(dvonn.LEFTBOTTON_EDGE, b2)
-	b3.SetChildNode(dvonn.LEFTUPPER_EDGE, a2)
-
-	b4.SetChildNode(dvonn.RIGHTBOTTON_EDGE, c5)
-	b4.SetChildNode(dvonn.BOTTON_EDGE, c3)
-	b4.SetChildNode(dvonn.LEFTBOTTON_EDGE, b3)
-	b4.SetChildNode(dvonn.LEFTUPPER_EDGE, a3)
-
-	c1.SetChildNode(dvonn.UPPER_EDGE, b1)
-	c1.SetChildNode(dvonn.RIGHTUPPER_EDGE, c2)
-	c1.SetChildNode(dvonn.RIGHTBOTTON_EDGE, d2)
-	c1.SetChildNode(dvonn.BOTTON_EDGE, d1)
-
-	c2.SetChildNode(dvonn.UPPER_EDGE, b2)
-	c2.SetChildNode(dvonn.RIGHTUPPER_EDGE, c3)
-	c2.SetChildNode(dvonn.RIGHTBOTTON_EDGE, d3)
-	c2.SetChildNode(dvonn.BOTTON_EDGE, d2)
-	c2.SetChildNode(dvonn.LEFTBOTTON_EDGE, c1)
-	c2.SetChildNode(dvonn.LEFTUPPER_EDGE, b1)
-
-	c3.SetChildNode(dvonn.UPPER_EDGE, c3)
-	c3.SetChildNode(dvonn.RIGHTUPPER_EDGE, c4)
-	c3.SetChildNode(dvonn.RIGHTBOTTON_EDGE, d4)
-	c3.SetChildNode(dvonn.BOTTON_EDGE, d3)
-	c3.SetChildNode(dvonn.LEFTBOTTON_EDGE, c2)
-	c3.SetChildNode(dvonn.LEFTUPPER_EDGE, b2)
-
-	c4.SetChildNode(dvonn.UPPER_EDGE, b4)
-	c4.SetChildNode(dvonn.RIGHTUPPER_EDGE, c5)
-	c4.SetChildNode(dvonn.RIGHTBOTTON_EDGE, d5)
-	c4.SetChildNode(dvonn.BOTTON_EDGE, d4)
-	c4.SetChildNode(dvonn.LEFTBOTTON_EDGE, c3)
-	c4.SetChildNode(dvonn.LEFTUPPER_EDGE, b3)
-
-	c5.SetChildNode(dvonn.BOTTON_EDGE, d5)
-	c5.SetChildNode(dvonn.LEFTBOTTON_EDGE, c4)
-	c5.SetChildNode(dvonn.LEFTUPPER_EDGE, b4)
-
-
-	d1.SetChildNode(dvonn.UPPER_EDGE, c1)
-	d1.SetChildNode(dvonn.RIGHTUPPER_EDGE, d2)
-
-	d2.SetChildNode(dvonn.UPPER_EDGE, c2)
-	d2.SetChildNode(dvonn.RIGHTUPPER_EDGE, d3)
-	d2.SetChildNode(dvonn.LEFTBOTTON_EDGE, d1)
-	d2.SetChildNode(dvonn.LEFTUPPER_EDGE, c1)
-
-	d3.SetChildNode(dvonn.UPPER_EDGE, c3)
-	d3.SetChildNode(dvonn.RIGHTUPPER_EDGE, d4)
-	d3.SetChildNode(dvonn.LEFTBOTTON_EDGE, d2)
-	d3.SetChildNode(dvonn.LEFTUPPER_EDGE, c2)
-
-	d4.SetChildNode(dvonn.UPPER_EDGE, c4)
-	d4.SetChildNode(dvonn.RIGHTUPPER_EDGE, d5)
-	d4.SetChildNode(dvonn.LEFTBOTTON_EDGE, d3)
-	d4.SetChildNode(dvonn.LEFTUPPER_EDGE, c3)
-
-	d5.SetChildNode(dvonn.BOTTON_EDGE, c5)
-	d5.SetChildNode(dvonn.LEFTBOTTON_EDGE, d4)
-	d5.SetChildNode(dvonn.LEFTUPPER_EDGE, c4)
-
-	res := b3.GetStraightAdjacentOnLevel(2)
-	fmt.Println(res)
+	dvonnGame.Move(player1, "f1")
+	dvonnGame.Move(player2, "g3")
 }

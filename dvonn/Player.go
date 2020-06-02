@@ -8,11 +8,11 @@ type Player struct {
 	playerColor ChipColor  // this can only be WHITE or BLACK
 }
 
-func GetPlayer(name, id string, playerColor ChipColor) *Player {
+func GetPlayer(name, id string, playerColor ChipColor) Player {
 	if playerColor == RED {
 		log.Fatal("wrong color is passed while creating player")
 	}
-	return &Player{id, name, playerColor}
+	return Player{id, name, playerColor}
 }
 
 func (p *Player) GetId() string {

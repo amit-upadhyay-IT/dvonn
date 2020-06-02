@@ -166,3 +166,10 @@ func (db *DvonnBoard) _traverse(nodePtr *HexNode, res *traverseStore) {
 	}
 }
 
+func (db *DvonnBoard) RemoveDisconnectedCells() {
+	disconnectedCells := db.GetDisconnectedCells()
+	for _, cell := range disconnectedCells {
+		db.DeFill(cell)
+	}
+}
+

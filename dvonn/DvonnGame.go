@@ -23,6 +23,25 @@ func GetDvonnGame(players []Player, whitePlayer Player) *DvonnGame {
 	}
 }
 
+func (dg *DvonnGame) togglePlayer() {
+	if dg.currentTurn.GetPlayerColor() == WHITE {
+		dg.currentTurn = dg.GetPlayerByColor(BLACK)
+	} else {
+		dg.currentTurn = dg.GetPlayerByColor(WHITE)
+	}
+}
+
+func (dg *DvonnGame) GetPlayerByColor(color ChipColor) Player {
+	player := Player{}  // dummy initialization
+	for _, player := range dg.GetPlayers() {
+		if player.GetPlayerColor() == color {
+			return player;
+		}
+	}
+	log.Fatal("[DvonnGame.GetPlayerByColor] can not find player with color " + color)
+	return player
+}
+
 
 func (dg *DvonnGame) GetPlayers() []Player {
 	return dg.players
@@ -92,6 +111,7 @@ func (dg *DvonnGame) Move(player Player, paths ...string) (bool, error) {
 			return false, err
 		}
 		dg.board.Fill(destId, []Chip{{player.GetPlayerColor()}})
+		dg.unusedChips = dg.unusedChips - 1;  // updating count of unused chips as chips are now being involved in game
 		return true, nil
 	} else if dg.GetGamePhase() == MOVEMENT_PHASE {
 		if len(paths) != 2 {
@@ -103,9 +123,15 @@ func (dg *DvonnGame) Move(player Player, paths ...string) (bool, error) {
 		if !moveValid || err != nil {
 			return false, err
 		}
+		// do movement
+		origStack := dg.board.GetCells()[orgId].GetChipsStack();
+		dg.board.DeFill(orgId)
+		dg.board.Fill(dstId, origStack)
+		dg.board.RemoveDisconnectedCells()
 	} else {
 		log.Fatal("GamePhase not available")
 	}
+	dg.togglePlayer()
 	return false, nil  // anyway this is unreachable code
 }
 
@@ -133,10 +159,34 @@ func (dg *DvonnGame) _canPlace(player Player, destId string) (bool, error) {
 func (dg *DvonnGame) _canMove(player Player, originId, destId string) (bool, error) {
 	isValid := true
 	errM := ""
+	// validate game phase
+	if isValid = dg.GetGamePhase() == MOVEMENT_PHASE; !isValid {
+		errM = "game phase is not valid, it should be movement phase"
+	}
 	// validate player turn
-	isValid = dg.isPlayerTurnValid(player)
-	if !isValid {
+	if isValid = dg.isPlayerTurnValid(player); !isValid {
 		errM = "different player is required to play the move"
+	}
+	// validate: origin and destination place should not be empty
+	if isValid = dg.board.GetCells()[originId].IsEmpty() && dg.board.GetCells()[destId].IsEmpty(); !isValid {
+		errM = "the origin aid destination place can not be empty"
+	}
+	if isValid = dg.board.GetCells()[originId].IsEmpty(); !isValid {
+		errM = "the origin place can not be empty"
+	}
+	if isValid = dg.board.GetCells()[destId].IsEmpty(); !isValid {
+		errM = "the destination place can not be empty"
+	}
+	// validate source destination by calculating adjacent nodes i.e. distance should be length of stack on origin node
+	isDestValid := false
+	possibleDestNodes := dg.board.GetCells()[originId].GetStraightAdjacentOnLevel(dg.board.GetCells()[originId].GetStackLength())
+	for _, node := range possibleDestNodes {
+		if destId == node.GetIdentifier() {
+			isDestValid = true
+		}
+	}
+	if isValid = isDestValid; !isValid {
+		errM = "not possible to place stack from " + originId + " to " + destId
 	}
 	return isValid, errors.New(errM)
 }
