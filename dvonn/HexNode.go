@@ -80,6 +80,16 @@ func (hn *HexNode) Empty() {
 }
 
 
+func (hn *HexNode) IsCompletelySurrounded() bool {
+	return !(len(hn.GetChildNodes()) < 6)
+}
+
+
+func (hn *HexNode) HasFreeEdge() bool {
+	return !hn.IsCompletelySurrounded()
+}
+
+
 /*
  returns: the list of Adjacent nodes which are in straight line from the current Node
  Adjacent nodes in straight line means: As there can be six adjacent nodes in a hexagonal node and those nodes

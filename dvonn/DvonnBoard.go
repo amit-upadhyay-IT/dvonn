@@ -106,6 +106,22 @@ func (db *DvonnBoard) GetRedChipsIds() []string {
 	return res
 }
 
+
+func (db *DvonnBoard) GetCellIdsByStackColor(color ChipColor) []string {
+	res := make([]string, 0)
+	for id, node := range db.cells {
+		topChip, err := node.GetTopChips()
+		// there can be cases when board cell will be empty, handling that case by continuing the loop
+		if err != nil {
+			continue
+		}
+		if topChip.GetColor() == color {
+			res = append(res, id)
+		}
+	}
+	return res
+}
+
 /*
  Returns cells which are not connected to the red chip Node by any link, if all are connected, then returns nil
  Solution:  - Get all the nodes where red chip are placed
@@ -173,3 +189,38 @@ func (db *DvonnBoard) RemoveDisconnectedCells() {
 	}
 }
 
+func (db *DvonnBoard) IsCellEmpty(id string) bool {
+	if node, ok := db.cells[id]; ok {
+		return node.IsEmpty()
+	}
+	log.Fatal("[DvonnBoard.IsCellEmpty()] wrong identifier passed, id: ", id)
+	return false
+}
+
+
+/*
+ argument: source node id
+ return: list of nodes where the chip stacks can be placed from the id passed in argument
+
+ Solution: iterates over the node map in each of the six direction from the hexagonal node
+		NOTE that maximum number of possible move for any Id can be 6, as there are 6 edges
+		to the node, and nodes can be moved in any direction, but only along straight lines
+ */
+func (db *DvonnBoard) GetPossibleMoveFor(id string) []*HexNode {
+
+	res := make([]*HexNode, 0)
+	if node, ok := db.cells[id]; !ok {
+		// get possible adjacent nodes
+		adjacentNodes := node.GetStraightAdjacentOnLevel(db.cells[id].GetStackLength())
+
+		// check those places should not be empty
+		for _, adjNode := range adjacentNodes {
+			if !adjNode.IsEmpty() {
+				res = append(res, adjNode)
+			}
+		}
+		return res
+	}
+	log.Fatal("[DvonnBoard.GetPossibleMoveFor()] wrong identifier passed, id: ", id)
+	return nil
+}

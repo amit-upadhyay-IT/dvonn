@@ -100,6 +100,9 @@ func (dg *DvonnGame) GetGamePhase() GamePhase {
  NOTE: the client should not pass the chips, depending on the player we place the chips in placement phase and in
  movement phase we check the origin position and destination position and get chips from accordingly.
  */
+// TODO: send in response a set of actions that the implementer could perform
+// like MOVEMENT_DONE, PLACEMENT_DONE, NO_VALID_MOVE(return along with the first two stages), GAME_END_STATE,
+// WINNER, etc, think more on it
 func (dg *DvonnGame) Move(player Player, paths ...string) (bool, error) {
 	if dg.GetGamePhase() == PLACEMENT_PHASE {
 		if len(paths) > 1 {
@@ -168,18 +171,24 @@ func (dg *DvonnGame) _canMove(player Player, originId, destId string) (bool, err
 		errM = "different player is required to play the move"
 	}
 	// validate: origin and destination place should not be empty
-	if isValid = dg.board.GetCells()[originId].IsEmpty() && dg.board.GetCells()[destId].IsEmpty(); !isValid {
-		errM = "the origin aid destination place can not be empty"
+	if isValid = !dg.board.IsCellEmpty(originId) && !dg.board.IsCellEmpty(destId); !isValid {
+		errM = "the origin and destination place can not be empty"
 	}
-	if isValid = dg.board.GetCells()[originId].IsEmpty(); !isValid {
+	if isValid = !dg.board.IsCellEmpty(originId); !isValid {
 		errM = "the origin place can not be empty"
 	}
-	if isValid = dg.board.GetCells()[destId].IsEmpty(); !isValid {
+	if isValid = !dg.board.IsCellEmpty(destId); !isValid {
 		errM = "the destination place can not be empty"
 	}
+
+	// validate: only those chips can be moved where at-least on of the adjacent is free.
+	if isValid = dg.board.GetCells()[originId].HasFreeEdge(); !isValid {
+		errM = "only chips with some free surroundings can be moved"
+	}
+
 	// validate source destination by calculating adjacent nodes i.e. distance should be length of stack on origin node
 	isDestValid := false
-	possibleDestNodes := dg.board.GetCells()[originId].GetStraightAdjacentOnLevel(dg.board.GetCells()[originId].GetStackLength())
+	possibleDestNodes := dg.board.GetPossibleMoveFor(originId)
 	for _, node := range possibleDestNodes {
 		if destId == node.GetIdentifier() {
 			isDestValid = true
@@ -199,3 +208,24 @@ func (dg *DvonnGame) isPlayerTurnValid(player Player) bool {
 	return true
 }
 
+/*
+ Checks if any valid move is left for a player
+ arg: player for whom checking valid move is required
+ return: return true if any valid move is available, else false
+
+ Solution:
+	- get all cell ids which have the respective player color on top of stack
+	- If any possible move from that cell id is present then return true
+	- If no possible move could be found then return false, stating no valid move left
+ */
+func (dg *DvonnGame) IsValidMoveLeftForPlayer(player Player) bool {
+	color := player.GetPlayerColor()
+	cellIds := dg.board.GetCellIdsByStackColor(color)
+	// for each id check if possible movement can be done from that stack
+	for _, id := range cellIds {
+		if len(dg.board.GetPossibleMoveFor(id)) > 0 && dg.board.GetCells()[id].HasFreeEdge() {
+			return true
+		}
+	}
+	return false
+}
