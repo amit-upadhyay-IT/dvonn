@@ -122,6 +122,16 @@ func (db *DvonnBoard) GetCellIdsByStackColor(color ChipColor) []string {
 	return res
 }
 
+
+func (db *DvonnBoard) GetCountOfPiecesControlledBy(color ChipColor) int {
+	controlledIds := db.GetCellIdsByStackColor(color)
+	count := 0
+	for _, id := range controlledIds {
+		count += db.GetCells()[id].GetStackLength()
+	}
+	return count
+}
+
 /*
  Returns cells which are not connected to the red chip Node by any link, if all are connected, then returns nil
  Solution:  - Get all the nodes where red chip are placed
