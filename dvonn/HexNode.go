@@ -82,8 +82,22 @@ func (hn *HexNode) IsCompletelySurrounded() bool {
 	return !(len(hn.GetChildNodes()) < 6)
 }
 
+/*
+ returns true if any of the surrounding node is empty
+ NOTE: empty means here, there can be hexagonal node present but that hexagonal node
+ should not have any chip kept on it, i.e. stack length should be zero
+ */
 func (hn *HexNode) HasFreeEdge() bool {
-	return !hn.IsCompletelySurrounded()
+	if hn.IsCompletelySurrounded() {
+		for _, node := range hn.GetChildNodes() {
+			if node.stackLength == 0 {
+				return true
+			}
+		}
+	} else {  // as its not completely surrounded, definitely it has free edge
+		return true
+	}
+	return false
 }
 
 /*

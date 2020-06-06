@@ -111,7 +111,7 @@ func (dg *DvonnGame) Move(player Player, paths ...string) MoveResult {
 		moveRes.SetNextPlayer(player)
 	}
 	// if the placement phase has just ended then the next move should be done by WHITE
-	if moveRes.gamePhase == PLACEMENT_PHASE && dg.unusedChips == 0 { // NOTE: fetch phase from moreRes only for comparing
+	if moveRes.gamePhase == PLACEMENT_PHASE && dg.unusedChips == 0 { // NOTE: fetch phase from moreRes only for comparing, this should be the source of truth
 		moveRes.SetNextPlayer(dg.GetPlayerByColor(WHITE))
 	}
 	// set the next player as the current player so that the validation could be done when the client is calling the
@@ -238,7 +238,7 @@ func (dg *DvonnGame) _canMove(player Player, originId, destId string) MoveResult
 
 	// validate: only those chips can be moved where at-least on of the adjacent is free.
 	if isValid = dg.board.GetCells()[originId].HasFreeEdge(); !isValid {
-		errM = "only chips with some free surroundings can be moved"
+		errM = "only chips with some free surroundings can be moved origin id: " + originId
 		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_NO_FREE_ADJACENT_FOUND, errM, errors.New(errM), MOVEMENT_PHASE)
 	}

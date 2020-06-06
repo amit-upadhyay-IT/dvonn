@@ -11,20 +11,20 @@ type MatchResult struct {
 type WinnerColor string
 
 const (
+	WINNER_UNKNOWN WinnerColor = "UNKNOWN"
 	WINNER_WHITE WinnerColor = "WHITE"
 	WINNER_BLACK WinnerColor = "BLACK"
 	WINNER_DRAW  WinnerColor = "DRAW"
 )
 
 func GetWinnerColorFromPlayerColor(color ChipColor) WinnerColor {
-	var res WinnerColor
 	if color == WHITE {
-		res = WINNER_WHITE
+		return WINNER_WHITE
 	} else if color == BLACK {
-		res = WINNER_BLACK
+		return WINNER_BLACK
 	}
 	log.Fatal("player can not have color other than WHITE or BLACK")
-	return res
+	return WINNER_UNKNOWN
 }
 
 func (mr *MatchResult) GetWinnerColor() WinnerColor {

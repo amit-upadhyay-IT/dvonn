@@ -56,7 +56,6 @@ func TestGameSample_01(t *testing.T) {
 	blackMovementCounter := 0
 	for {
 		moveIds := make([]string, 0)
-		fmt.Println(currentPlayer.GetPlayerColor()+"----")
 		if dvonnGame.GetGamePhase() == dvonn.PLACEMENT_PHASE {
 			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
 				moveIds = append(moveIds, strings.ToLower(whitePlacementMoves[whitePlacementCounter]))
@@ -71,9 +70,8 @@ func TestGameSample_01(t *testing.T) {
 				whiteMovementCounter += 1
 			} else {
 				moveIds = append(moveIds, strings.Split(strings.ToLower(blackMovementMoves[blackMovementCounter]), " ")...)
-				blackMovementCounter =+ 1
+				blackMovementCounter += 1
 			}
-			break // temp
 		}
 		moveRes := dvonnGame.Move(currentPlayer, moveIds...)
 		if moveRes.IsGameOver() {
@@ -82,6 +80,11 @@ func TestGameSample_01(t *testing.T) {
 		if !moveRes.IsActionSuccess() {
 			fmt.Println(moveRes.GetErrorCode())
 			fmt.Println(moveRes.GetErrorMessage())
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				whiteMovementCounter -= 1
+			} else {
+				blackMovementCounter -= 1
+			}
 		}
 		currentPlayer = moveRes.GetNextPlayer()
 	}
