@@ -1,4 +1,4 @@
-package main
+package generator
 
 import (
 	"../dvonn"
@@ -10,9 +10,6 @@ import (
 	"time"
 )
 
-func main() {
-	playGame()
-}
 
 func playGame() {
 	players := make([]dvonn.Player, 0)

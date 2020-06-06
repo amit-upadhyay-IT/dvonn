@@ -23,6 +23,10 @@ func GetDvonnGame(players []Player, whitePlayer Player) *DvonnGame {
 	}
 }
 
+func (dg *DvonnGame) GetBoard() *DvonnBoard {
+	return dg.board
+}
+
 func (dg *DvonnGame) togglePlayer() {
 	if dg.currentTurn.GetPlayerColor() == WHITE {
 		dg.currentTurn = dg.GetPlayerByColor(BLACK)
@@ -338,7 +342,7 @@ func (dg *DvonnGame) GetGameWinner() (*MatchResult, error) {
 		} else {
 			winnerColor = WINNER_DRAW
 		}
-		return &MatchResult{loserScore:loserScore, winnerScore:winnerScore, winningColor:winnerColor}, nil
+		return &MatchResult{LoserScore: loserScore, WinnerScore:winnerScore, WinningColor:winnerColor}, nil
 	}
 	return &MatchResult{}, errors.New("this game is not over yet")
 

@@ -6,7 +6,8 @@ import (
 
 type HexNode struct {
 	identifier  string
-	stackLength int
+	stackLength int  // TODO: remove dependency from stackLength, coz this should be calculated dynamically and
+	// updating this filed on every action isn't a good design
 	chipsStack  []Chip
 	childNodes  map[EdgeType]*HexNode
 }
@@ -90,7 +91,7 @@ func (hn *HexNode) IsCompletelySurrounded() bool {
 func (hn *HexNode) HasFreeEdge() bool {
 	if hn.IsCompletelySurrounded() {
 		for _, node := range hn.GetChildNodes() {
-			if node.stackLength == 0 {
+			if node.GetStackLength() == 0 {
 				return true
 			}
 		}

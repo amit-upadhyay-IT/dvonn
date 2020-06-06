@@ -3,9 +3,9 @@ package dvonn
 import "log"
 
 type MatchResult struct {
-	winningColor WinnerColor
-	winnerScore int
-	loserScore int
+	WinningColor WinnerColor
+	WinnerScore  int
+	LoserScore   int
 }
 
 type WinnerColor string
@@ -28,13 +28,13 @@ func GetWinnerColorFromPlayerColor(color ChipColor) WinnerColor {
 }
 
 func (mr *MatchResult) GetWinnerColor() WinnerColor {
-	return mr.winningColor
+	return mr.WinningColor
 }
 
 func (mr *MatchResult) GetWinnerScore() int {
-	return mr.winnerScore
+	return mr.WinnerScore
 }
 
 func (mr *MatchResult) GetLoserScore() int {
-	return mr.loserScore
+	return mr.LoserScore
 }
