@@ -29,16 +29,28 @@ class HexNode {
   + Empty()
   + GetStraightAdjacentOnLevel(level)
   - _traverseInDirection(edgeType, nodePtr, depth)
+  - presentIn([]*HexNode)
 }
 
 class DvonnBoard {
   - cells map[string]*HexNode: {id to node address map}
+  + GetDvonnBoard()
   - initializeBoard()
-  + fillCell (id | position)
-  + defillCells (List<id | position>)
-  + getSnapshot()
-  + getDisconnectedCells(): returns list of disconnected nodes
-  - _getRedChipNode(): returns positions of red chips
+  - getBoardCellsIds()
+  + GetCells()
+  + getNodesIdentifiers(nodes []*HexNode)
+  + Fill (id, chips)
+  + DeFill(id)
+  + GetBoardSnapshot()
+  + GetRedChipsIds()
+  + GetCellIdsByStackColor(color ChipColor)
+  + GetCountOfPiecesControlledBy(color ChipColor)
+  + GetDisconnectedCells()
+  - traverseConnectedNodes(nodePtr)
+  - _traverse(nodePtr, res)
+  + RemoveDisconnectedCells()
+  + IsCellEmpty(id)
+  + GetPossibleMoveFor(id string)
 }
 
 class Player {
@@ -62,19 +74,76 @@ enum EdgeType {
   RIGHTBOTTON_EDGE
 }
 
+enum WinnerColor {
+  WINNER_UNKNOWN
+  WINNER_WHITE
+  WINNER_BLACK
+  WINNER_DRAW
+}
+
+class MatchResult {
+	- winningColor WinnerColor
+	- winnerScore int
+	- loserScore int
+
+}
+
+enum ErrorCode {
+	ERROR_UNKNOWN ErrorCode = iota
+	ERROR_ARGUMENT_COUNT_MISMATCH
+	ERROR_INVALID_PLAYER_TURN
+	ERROR_DESTINATION_ALREADY_OCCUPIED
+
+	ERROR_INVALID_GAME_PHASE
+	ERROR_EMPTY_ORIGIN_DESTINATION
+	ERROR_EMPTY_ORIGIN
+	ERROR_EMPTY_DESTINATION
+	ERROR_NO_FREE_ADJACENT_FOUND
+	ERROR_INVALID_DESTINATION_SELECTED
+}
+
+class MoveResult {
+	- isGameOver      bool
+	- isActionSuccess bool
+	- errorCode       ErrorCode
+	- errorMessage    string
+	- err             error
+	- gamePhase       GamePhase
+	- nextPlayer      Player
+	+ GetMoveResult()
+	+ SetNextPlayer()
+	+ IsGameOver()
+	+ GetNextPlayer()
+	+ IsActionSuccess()
+	+ GetErrorCode()
+	+ GetErrorMessage()
+}
+
 class DvonnGame {
-  - DvonnBoard board
-  - List<Player> players
-  - Player currentTurnPlayer
-  - GamePhase gamePhase
+	- board       *DvonnBoard
+	- players     []Player
+	- currentTurn Player
+	- gamePhase   GamePhase
+	- unusedChips int
+  + GetDvonnGame([]Player, Player)
+  - togglePlayer()
+  - getOppositeColoredPlayer(Player, positions...)
+  + GetPlayerByColor(ChipColor)
   + GetPlayers()
+  + AddPlayer()
+  + RemovePlayer()
   + GetCurrentPlayer()
-  + Move(Player, positions...)
-  - _canPlace(player, pos)
-  - _canMove(Player, startPos, endPos)
-  - isPlayerTurnValid()
   + GetGamePhase()
-  + getLegalMoveAvailableForPlayer()
+  + Move(Player, paths ...)
+  - move()
+  - _canPlace()
+  - _canMove()
+  - isPlayerTurnValid()
+  + IsValidMoveLeftForPlayer(playerColor ChipColor)
+  + HasNextPlayerAValidMove(currentPlayer Player)
+  + IsGameOver()
+  + GetGameWinner()
+  + GetNextTurnPlayer()
 }
 
 ChipColor --> Chip : uses
@@ -84,6 +153,9 @@ HexNode --> DvonnBoard : uses
 Player --> DvonnGame : uses
 GamePhase --> DvonnGame : uses
 DvonnBoard --> DvonnGame : uses
-
+WinnerColor --> MatchResult : uses
+MatchResult --> DvonnGame : uses
+ErrorCode --> MoveResult : uses
+MoveResult --> DvonnGame : uses
 
 @enduml
