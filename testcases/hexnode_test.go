@@ -57,7 +57,6 @@ func TestHexNodeLevelWiseAdjacentNodes_01(t *testing.T) {
 	k4 := dvonn.GetHexNode("k4")
 	k5 := dvonn.GetHexNode("k5")
 
-
 	a1.SetChildNode(dvonn.BOTTON_EDGE, b1)
 	a1.SetChildNode(dvonn.RIGHTUPPER_EDGE, a2)
 	a1.SetChildNode(dvonn.RIGHTBOTTON_EDGE, b2)
@@ -125,7 +124,6 @@ func TestHexNodeLevelWiseAdjacentNodes_01(t *testing.T) {
 	c5.SetChildNode(dvonn.LEFTBOTTON_EDGE, c4)
 	c5.SetChildNode(dvonn.LEFTUPPER_EDGE, b4)
 
-
 	d1.SetChildNode(dvonn.UPPER_EDGE, c1)
 	d1.SetChildNode(dvonn.RIGHTUPPER_EDGE, d2)
 	d1.SetChildNode(dvonn.RIGHTBOTTON_EDGE, e2)
@@ -151,7 +149,6 @@ func TestHexNodeLevelWiseAdjacentNodes_01(t *testing.T) {
 	d4.SetChildNode(dvonn.BOTTON_EDGE, e4)
 	d4.SetChildNode(dvonn.LEFTBOTTON_EDGE, d3)
 	d4.SetChildNode(dvonn.LEFTUPPER_EDGE, c3)
-
 
 	e1.SetChildNode(dvonn.UPPER_EDGE, d1)
 	e1.SetChildNode(dvonn.RIGHTUPPER_EDGE, e2)
@@ -183,7 +180,6 @@ func TestHexNodeLevelWiseAdjacentNodes_01(t *testing.T) {
 	e5.SetChildNode(dvonn.BOTTON_EDGE, f5)
 	e5.SetChildNode(dvonn.LEFTBOTTON_EDGE, e4)
 	e5.SetChildNode(dvonn.LEFTUPPER_EDGE, d4)
-
 
 	f1.SetChildNode(dvonn.UPPER_EDGE, e1)
 	f1.SetChildNode(dvonn.RIGHTUPPER_EDGE, f2)
@@ -344,8 +340,6 @@ func TestHexNodeLevelWiseAdjacentNodes_01(t *testing.T) {
 	k5.SetChildNode(dvonn.UPPER_EDGE, j5)
 	k5.SetChildNode(dvonn.LEFTBOTTON_EDGE, k4)
 	k5.SetChildNode(dvonn.LEFTUPPER_EDGE, j4)
-
-
 
 	foundRes := b3.GetStraightAdjacentOnLevel(1)
 	expectedRes := []string{"a3", "b4", "c4", "c3", "b2", "a2"}

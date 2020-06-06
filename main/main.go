@@ -94,9 +94,9 @@ Black wins.
 
 Status:   LOSE  WIN
 Game pts: 13  104
- */
+*/
 
-func main () {
+func main() {
 	players := make([]dvonn.Player, 0)
 	player1 := dvonn.GetPlayer("pushpender", "amit123", dvonn.WHITE)
 	player2 := dvonn.GetPlayer("arman", "amit123", dvonn.BLACK)

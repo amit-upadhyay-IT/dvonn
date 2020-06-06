@@ -34,9 +34,9 @@ func getBoardCellsIds() []string {
 /*
  NOTE: This method returns the cells on the board, however we should not be using this method coz, anything which we need
  to query on the cells should be written as a method in this class
- */
+*/
 func (db *DvonnBoard) GetCells() map[string]*HexNode {
-	return db.cells;
+	return db.cells
 }
 
 func getNodesIdentifiers(nodes []*HexNode) []string {
@@ -47,12 +47,11 @@ func getNodesIdentifiers(nodes []*HexNode) []string {
 	return res
 }
 
-
 /*
  Adds a stack of chips to the box whose id is passed
  NOTE: we shouldn't add extra logic here, like if game in placement phase then don't allow filling multiple chips on
  stack, etc. This should be taken care by the implementer of this method or should be taken care at root level.
- */
+*/
 func (db *DvonnBoard) Fill(id string, chips []Chip) {
 	if node, ok := db.cells[id]; ok {
 		node.AddChips(chips)
@@ -63,7 +62,7 @@ func (db *DvonnBoard) Fill(id string, chips []Chip) {
 
 /*
  Removes all chips from the Box whose id is passed
- */
+*/
 func (db *DvonnBoard) DeFill(id string) {
 	if node, ok := db.cells[id]; ok {
 		node.Empty()
@@ -91,7 +90,7 @@ func (db *DvonnBoard) GetBoardSnapshot() {
 		   Another alternative could be storing a list of ids for red chip addresses at the time Fill is called
 		   but if we go with later approach we will need to add extra piece of code in Fill() method which will
 		   violate single responsibility principle. So writing a extra method below.
- */
+*/
 // TODO: write testcase
 func (db *DvonnBoard) GetRedChipsIds() []string {
 	res := make([]string, 0)
@@ -105,7 +104,6 @@ func (db *DvonnBoard) GetRedChipsIds() []string {
 	}
 	return res
 }
-
 
 func (db *DvonnBoard) GetCellIdsByStackColor(color ChipColor) []string {
 	res := make([]string, 0)
@@ -122,7 +120,6 @@ func (db *DvonnBoard) GetCellIdsByStackColor(color ChipColor) []string {
 	return res
 }
 
-
 func (db *DvonnBoard) GetCountOfPiecesControlledBy(color ChipColor) int {
 	controlledIds := db.GetCellIdsByStackColor(color)
 	count := 0
@@ -137,7 +134,7 @@ func (db *DvonnBoard) GetCountOfPiecesControlledBy(color ChipColor) int {
  Solution:  - Get all the nodes where red chip are placed
 			- Traverse from each of the above node where red chip is placed and store the visited node id
 			- The ids which aren't visited will be the disconnected nodes
- */
+*/
 func (db *DvonnBoard) GetDisconnectedCells() []string {
 	redChipNodes := db.GetRedChipsIds()
 	visitedCells := utils.GetSet()
@@ -149,7 +146,7 @@ func (db *DvonnBoard) GetDisconnectedCells() []string {
 			return nil
 		}
 	}
-	if visitedCells.Size() < 49 {  // cells are disconnected
+	if visitedCells.Size() < 49 { // cells are disconnected
 		cells := utils.GetSet()
 		cells.AddMultiS(getBoardCellsIds())
 		return cells.DifferenceS(visitedCells)
@@ -161,7 +158,7 @@ func (db *DvonnBoard) GetDisconnectedCells() []string {
  for storing result to a mutable type, coz I was facing issue while updating result in slice from the recursive method
  for some reason (not sure what) slice isn't behaving like mutable type as its giving empty value out of the recursive
  method scope. So using a custom type and adding slice into it.
- */
+*/
 type traverseStore struct {
 	traverseRes []*HexNode
 }
@@ -169,17 +166,16 @@ type traverseStore struct {
 /*
  Returns the connected cells from the nodePtr passed
  connected means: traversal is possible b/w nodes which have chip kept on them
- */
+*/
 func (db *DvonnBoard) traverseConnectedNodes(nodePtr *HexNode) []*HexNode {
 	res := &traverseStore{make([]*HexNode, 0)}
 	db._traverse(nodePtr, res)
 	return res.traverseRes
 }
 
-
 /*
  doing DFS from the node
- */
+*/
 func (db *DvonnBoard) _traverse(nodePtr *HexNode, res *traverseStore) {
 	// exit condition
 	if nodePtr == nil || nodePtr.presentIn(res.traverseRes) || nodePtr.IsEmpty() {
@@ -207,7 +203,6 @@ func (db *DvonnBoard) IsCellEmpty(id string) bool {
 	return false
 }
 
-
 /*
  argument: source node id
  return: list of nodes where the chip stacks can be placed from the id passed in argument
@@ -215,11 +210,11 @@ func (db *DvonnBoard) IsCellEmpty(id string) bool {
  Solution: iterates over the node map in each of the six direction from the hexagonal node
 		NOTE that maximum number of possible move for any Id can be 6, as there are 6 edges
 		to the node, and nodes can be moved in any direction, but only along straight lines
- */
+*/
 func (db *DvonnBoard) GetPossibleMoveFor(id string) []*HexNode {
 
 	res := make([]*HexNode, 0)
-	if node, ok := db.cells[id]; !ok {
+	if node, ok := db.cells[id]; ok {
 		// get possible adjacent nodes
 		adjacentNodes := node.GetStraightAdjacentOnLevel(db.cells[id].GetStackLength())
 

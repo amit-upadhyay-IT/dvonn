@@ -3,9 +3,9 @@ package dvonn
 import "log"
 
 type Player struct {
-	id string
-	name string
-	playerColor ChipColor  // this can only be WHITE or BLACK
+	id          string
+	name        string
+	playerColor ChipColor // this can only be WHITE or BLACK
 }
 
 func GetPlayer(name, id string, playerColor ChipColor) Player {

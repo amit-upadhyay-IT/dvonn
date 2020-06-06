@@ -8,4 +8,3 @@ const (
 	WHITE ChipColor = "WHITE"
 	BLACK ChipColor = "BLACK"
 )
-
