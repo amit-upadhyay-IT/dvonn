@@ -2,22 +2,39 @@ package dvonn
 
 import "log"
 
-type MatchResult string
+type MatchResult struct {
+	winningColor WinnerColor
+	winnerScore int
+	loserScore int
+}
+
+type WinnerColor string
 
 const (
-	RESULT_WHITE MatchResult = "WHITE"
-	RESULT_BLACK MatchResult = "BLACK"
-	RESULT_DRAW MatchResult = "DRAW"
+	WINNER_WHITE WinnerColor = "WHITE"
+	WINNER_BLACK WinnerColor = "BLACK"
+	WINNER_DRAW  WinnerColor = "DRAW"
 )
 
-
-func GetMatchResultFromPlayerColor(color ChipColor) MatchResult {
-	var res MatchResult
+func GetWinnerColorFromPlayerColor(color ChipColor) WinnerColor {
+	var res WinnerColor
 	if color == WHITE {
-		res = RESULT_WHITE
+		res = WINNER_WHITE
 	} else if color == BLACK {
-		res = RESULT_BLACK
+		res = WINNER_BLACK
 	}
 	log.Fatal("player can not have color other than WHITE or BLACK")
 	return res
+}
+
+func (mr *MatchResult) GetWinnerColor() WinnerColor {
+	return mr.winningColor
+}
+
+func (mr *MatchResult) GetWinnerScore() int {
+	return mr.winnerScore
+}
+
+func (mr *MatchResult) GetLoserScore() int {
+	return mr.loserScore
 }

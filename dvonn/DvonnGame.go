@@ -6,20 +6,20 @@ import (
 )
 
 type DvonnGame struct {
-	board *DvonnBoard
-	players []Player
+	board       *DvonnBoard
+	players     []Player
 	currentTurn Player
-	gamePhase GamePhase
+	gamePhase   GamePhase
 	unusedChips int
 }
 
 func GetDvonnGame(players []Player, whitePlayer Player) *DvonnGame {
-	return &DvonnGame {
-		board:GetDvonnBoard(),
-		players:players,
-		currentTurn:whitePlayer,
-		gamePhase:PLACEMENT_PHASE,
-		unusedChips:49,
+	return &DvonnGame{
+		board:       GetDvonnBoard(),
+		players:     players,
+		currentTurn: whitePlayer,
+		gamePhase:   PLACEMENT_PHASE,
+		unusedChips: 49,
 	}
 }
 
@@ -31,17 +31,24 @@ func (dg *DvonnGame) togglePlayer() {
 	}
 }
 
+func (dg *DvonnGame) getOppositeColoredPlayer(player Player) Player {
+	if player.GetPlayerColor() == WHITE {
+		return dg.GetPlayerByColor(BLACK)
+	} else {
+		return dg.GetPlayerByColor(WHITE)
+	}
+}
+
 func (dg *DvonnGame) GetPlayerByColor(color ChipColor) Player {
-	player := Player{}  // dummy initialization
+	player := Player{} // dummy initialization
 	for _, player := range dg.GetPlayers() {
 		if player.GetPlayerColor() == color {
-			return player;
+			return player
 		}
 	}
 	log.Fatal("[DvonnGame.GetPlayerByColor] can not find player with color " + color)
 	return player
 }
-
 
 func (dg *DvonnGame) GetPlayers() []Player {
 	return dg.players
@@ -50,7 +57,7 @@ func (dg *DvonnGame) GetPlayers() []Player {
 /*
  NOTE: Ideally the players needs to be passed at the time when Instance of Game is being created, adding player
 	   in b/w doesn't make any sense unless the scope of game changes in future.
- */
+*/
 func (dg *DvonnGame) AddPlayer(player Player) {
 	dg.players = append(dg.players, player)
 }
@@ -69,15 +76,13 @@ func (dg *DvonnGame) RemovePlayer(playerId string) {
 	dg.players = append(dg.players[:remIndex], dg.players[remIndex+1:]...)
 }
 
-
 /*
  NOTE: this shall be majorly be used for validating the user move, i.e. only current player turn can take move
  Also make sure that the current player is getting updated after each "valid" move.
- */
+*/
 func (dg *DvonnGame) GetCurrentPlayer() Player {
 	return dg.currentTurn
 }
-
 
 func (dg *DvonnGame) GetGamePhase() GamePhase {
 	if dg.unusedChips > 0 {
@@ -86,16 +91,34 @@ func (dg *DvonnGame) GetGamePhase() GamePhase {
 	return MOVEMENT_PHASE
 }
 
-
 /*
- this is a wrapper method on _move method which is actually doing all the logics related to move
+ This is a wrapper method on _move method which is actually doing all the logic related to move.
  NOTE: this method is purposely written to be consumed by game client for playing moves
- This method will also serve the purpose of writing logic on result obtained from the last move played
- */
+ This method will also serve the purpose of writing logic on result obtained from the last move played.
+ This method should be called once for one move.
+*/
 func (dg *DvonnGame) Move(player Player, paths ...string) MoveResult {
-	return dg.move(player, paths...)
+	moveRes := dg.move(player, paths...)
+	// based on results do operation like set next player as current player, etc
+	if moveRes.isGameOver {
+		return moveRes
+	}
+	if moveRes.isActionSuccess {
+		nextPlayer, _ := dg.GetNextTurnPlayer()
+		moveRes.SetNextPlayer(nextPlayer)
+	} else {
+		// validation failure occurred, so allow the same player to make the same move as the game isn't finished yet
+		moveRes.SetNextPlayer(player)
+	}
+	// if the placement phase has just ended then the next move should be done by WHITE
+	if moveRes.gamePhase == PLACEMENT_PHASE && dg.unusedChips == 0 { // NOTE: fetch phase from moreRes only for comparing
+		moveRes.SetNextPlayer(dg.GetPlayerByColor(WHITE))
+	}
+	// set the next player as the current player so that the validation could be done when the client is calling the
+	// move method again
+	dg.currentTurn = moveRes.GetNextPlayer()
+	return moveRes
 }
-
 
 /*
  There will be two types of movements:
@@ -109,7 +132,7 @@ func (dg *DvonnGame) Move(player Player, paths ...string) MoveResult {
 
  NOTE: the client should not pass the chips, depending on the player we place the chips in placement phase and in
  movement phase we check the origin position and destination position and get chips from accordingly.
- */
+*/
 // TODO: send in response a set of actions that the implementer could perform
 // like MOVEMENT_DONE, PLACEMENT_DONE, NO_VALID_MOVE(return along with the first two stages), GAME_END_STATE,
 // WINNER, etc, think more on it
@@ -117,7 +140,7 @@ func (dg *DvonnGame) move(player Player, paths ...string) MoveResult {
 	if dg.GetGamePhase() == PLACEMENT_PHASE {
 		if len(paths) > 1 {
 			errM := "can not get multiple paths as the game is still in PLACEMENT phase"
-			return GetMoveResult(false, true, false,
+			return GetMoveResult(false, false,
 				ERROR_ARGUMENT_COUNT_MISMATCH, errM, errors.New(errM), PLACEMENT_PHASE)
 		}
 		destId := paths[0]
@@ -125,13 +148,18 @@ func (dg *DvonnGame) move(player Player, paths ...string) MoveResult {
 		if validationRes.err != nil {
 			return validationRes
 		}
-		dg.board.Fill(destId, []Chip{{player.GetPlayerColor()}})
-		dg.unusedChips = dg.unusedChips - 1;  // updating count of unused chips as chips are now being involved in game
-		return GetMoveResult(false, true, true, ERROR_UNKNOWN, "", nil, PLACEMENT_PHASE)
+		// the first 3 moves should have to be red colors only
+		if dg.unusedChips > 46 {
+			dg.board.Fill(destId, []Chip{{RED}})
+		} else {
+			dg.board.Fill(destId, []Chip{{player.GetPlayerColor()}})
+		}
+		dg.unusedChips = dg.unusedChips - 1 // updating count of unused chips as chips are now being involved in game
+		return GetMoveResult(false, true, ERROR_UNKNOWN, "", nil, PLACEMENT_PHASE)
 	} else if dg.GetGamePhase() == MOVEMENT_PHASE {
 		if len(paths) != 2 {
 			errM := "only two ids are required in movement phase, which are origin and destination id"
-			return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+			return GetMoveResult(dg.IsGameOver(), false,
 				ERROR_ARGUMENT_COUNT_MISMATCH, errM, errors.New(errM), MOVEMENT_PHASE)
 		}
 		orgId := paths[0]
@@ -141,19 +169,15 @@ func (dg *DvonnGame) move(player Player, paths ...string) MoveResult {
 			return validationRes
 		}
 		// do movement
-		origStack := dg.board.GetCells()[orgId].GetChipsStack();
+		origStack := dg.board.GetCells()[orgId].GetChipsStack()
 		dg.board.DeFill(orgId)
 		dg.board.Fill(dstId, origStack)
 		dg.board.RemoveDisconnectedCells()
-		// adding pass functionality in case of movement plase only coz, it will only be possible to pass the turn
-		// in this phase. NOTE that in the end of current players turn we need to know if there can be any next turn
 	} else {
 		log.Fatal("GamePhase not available")
 	}
-	dg.togglePlayer()
-	// NOTE: after toggling the player we should check if the current player has any move left
-	return GetMoveResult(dg.IsGameOver(), dg.IsValidMoveLeftForPlayer(dg.GetCurrentPlayer().GetPlayerColor()), true,
-		ERROR_EMPTY_DESTINATION, "", nil, MOVEMENT_PHASE)
+	return GetMoveResult(dg.IsGameOver(), true,
+		ERROR_UNKNOWN, "", nil, MOVEMENT_PHASE)
 }
 
 func (dg *DvonnGame) _canPlace(player Player, destId string) MoveResult {
@@ -163,7 +187,7 @@ func (dg *DvonnGame) _canPlace(player Player, destId string) MoveResult {
 	isValid = dg.isPlayerTurnValid(player)
 	if !isValid {
 		errM = "another player is required to play the move"
-		return GetMoveResult(false, true, false,
+		return GetMoveResult(false, false,
 			ERROR_INVALID_PLAYER_TURN, errM, errors.New(errM), PLACEMENT_PHASE)
 	}
 
@@ -171,12 +195,12 @@ func (dg *DvonnGame) _canPlace(player Player, destId string) MoveResult {
 	isValid = dg.board.IsPlaceVacant(destId)
 	if !isValid {
 		errM = "position " + destId + "is already occupied"
-		return GetMoveResult(false, true, false, ERROR_DESTINATION_ALREADY_OCCUPIED, errM,
+		return GetMoveResult(false, false, ERROR_DESTINATION_ALREADY_OCCUPIED, errM,
 			errors.New(errM), PLACEMENT_PHASE)
 	}
 
 	// all validations are passed
-	return GetMoveResult(false, true, true, ERROR_UNKNOWN,
+	return GetMoveResult(false, true, ERROR_UNKNOWN,
 		errM, nil, PLACEMENT_PHASE)
 }
 
@@ -186,36 +210,36 @@ func (dg *DvonnGame) _canMove(player Player, originId, destId string) MoveResult
 	// validate game phase
 	if isValid = dg.GetGamePhase() == MOVEMENT_PHASE; !isValid {
 		errM = "game phase is not valid, it should be movement phase"
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_INVALID_GAME_PHASE, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 	// validate player turn
 	if isValid = dg.isPlayerTurnValid(player); !isValid {
 		errM = "different player is required to play the move"
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_INVALID_PLAYER_TURN, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 	// validate: origin and destination place should not be empty
 	if isValid = !dg.board.IsCellEmpty(originId) && !dg.board.IsCellEmpty(destId); !isValid {
 		errM = "the origin and destination place can not be empty"
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_EMPTY_ORIGIN_DESTINATION, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 	if isValid = !dg.board.IsCellEmpty(originId); !isValid {
 		errM = "the origin place can not be empty"
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_EMPTY_ORIGIN, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 	if isValid = !dg.board.IsCellEmpty(destId); !isValid {
 		errM = "the destination place can not be empty"
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_EMPTY_DESTINATION, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 
 	// validate: only those chips can be moved where at-least on of the adjacent is free.
 	if isValid = dg.board.GetCells()[originId].HasFreeEdge(); !isValid {
 		errM = "only chips with some free surroundings can be moved"
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_NO_FREE_ADJACENT_FOUND, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 
@@ -229,17 +253,17 @@ func (dg *DvonnGame) _canMove(player Player, originId, destId string) MoveResult
 	}
 	if isValid = isDestValid; !isValid {
 		errM = "not possible to place stack from " + originId + " to " + destId
-		return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), false,
+		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_INVALID_DESTINATION_SELECTED, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
 	// all validation are passed
-	return GetMoveResult(dg.IsGameOver(), dg.HasNextPlayerAValidMove(player), true,
+	return GetMoveResult(dg.IsGameOver(), true,
 		ERROR_UNKNOWN, "", nil, MOVEMENT_PHASE)
 }
 
 // validate player, i.e. only the current player should be able to make movement
 func (dg *DvonnGame) isPlayerTurnValid(player Player) bool {
-	if player.GetId() != dg.currentTurn.GetId() {
+	if player.GetPlayerColor() != dg.currentTurn.GetPlayerColor() {
 		return false
 	}
 	return true
@@ -254,7 +278,7 @@ func (dg *DvonnGame) isPlayerTurnValid(player Player) bool {
 	- get all cell ids which have the respective player color on top of stack
 	- If any possible move from that cell id is present then return true
 	- If no possible move could be found then return false, stating no valid move left
- */
+*/
 func (dg *DvonnGame) IsValidMoveLeftForPlayer(playerColor ChipColor) bool {
 	cellIds := dg.board.GetCellIdsByStackColor(playerColor)
 	// for each id check if possible movement can be done from that stack
@@ -266,7 +290,14 @@ func (dg *DvonnGame) IsValidMoveLeftForPlayer(playerColor ChipColor) bool {
 	return false
 }
 
+/*
+ tells if the other player has some valid move left to play or not
+*/
 func (dg *DvonnGame) HasNextPlayerAValidMove(currentPlayer Player) bool {
+	// in placement phase all players will always have a valid move to play
+	if dg.GetGamePhase() == PLACEMENT_PHASE {
+		return true
+	}
 	currentPlayColor := currentPlayer.GetPlayerColor()
 	var nextPlayerColor ChipColor
 	if currentPlayColor == WHITE {
@@ -278,30 +309,55 @@ func (dg *DvonnGame) HasNextPlayerAValidMove(currentPlayer Player) bool {
 }
 
 /*
- returns false if any one of the player has any move left to play, else return true
- */
+ returns false if any one of the player has any move left to play in MOVEMENT phase, else return true
+*/
 func (dg *DvonnGame) IsGameOver() bool {
-	return !dg.IsValidMoveLeftForPlayer(BLACK) && !dg.IsValidMoveLeftForPlayer(WHITE)
+	// NOTE that just when all the chips are placed from that point the game will transition into movement phase
+	return dg.GetGamePhase() != PLACEMENT_PHASE && !dg.IsValidMoveLeftForPlayer(BLACK) && !dg.IsValidMoveLeftForPlayer(WHITE)
 }
 
 /*
  Returns winner color
  if the match is drawn then returns nil
- */
-func (dg *DvonnGame) GetGameWinner() (MatchResult, error) {
-	var res MatchResult
+*/
+func (dg *DvonnGame) GetGameWinner() (*MatchResult, error) {
+	var winnerColor WinnerColor
+	winnerScore := 0
+	loserScore := 0
 	if dg.IsGameOver() {
 		playerOnePieces := dg.board.GetCountOfPiecesControlledBy(dg.GetPlayers()[0].GetPlayerColor())
 		playerTwoPieces := dg.board.GetCountOfPiecesControlledBy(dg.GetPlayers()[1].GetPlayerColor())
 		if playerOnePieces > playerTwoPieces {
-			res = GetMatchResultFromPlayerColor(dg.GetPlayers()[0].GetPlayerColor())
+			winnerColor = GetWinnerColorFromPlayerColor(dg.GetPlayers()[0].GetPlayerColor())
+			winnerScore = playerOnePieces
+			loserScore = playerTwoPieces
 		} else if playerOnePieces < playerTwoPieces {
-			res = GetMatchResultFromPlayerColor(dg.GetPlayers()[1].GetPlayerColor())
+			winnerColor = GetWinnerColorFromPlayerColor(dg.GetPlayers()[1].GetPlayerColor())
+			winnerScore = playerTwoPieces
+			loserScore = playerOnePieces
 		} else {
-			res = RESULT_DRAW
+			winnerColor = WINNER_DRAW
 		}
-		return res, nil
+		return &MatchResult{loserScore:loserScore, winnerScore:winnerScore, winningColor:winnerColor}, nil
 	}
-	return res, errors.New("this game is not over yet")
+	return &MatchResult{}, errors.New("this game is not over yet")
 
+}
+
+/*
+ Returns the player whose turn is next, i.e. after the current move
+ Logic: if game is not over then either of the player has a valid move left
+	so, it returns other player if other player has a valid move, otherwise
+	it returns the current player itself
+*/
+func (dg *DvonnGame) GetNextTurnPlayer() (Player, error) {
+	var player Player
+	if dg.IsGameOver() {
+		return player, errors.New("game is already over")
+	}
+	if dg.HasNextPlayerAValidMove(dg.GetCurrentPlayer()) {
+		return dg.getOppositeColoredPlayer(dg.GetCurrentPlayer()), nil
+	}
+	// since no valid move is left for the other player, so current player should continue playing
+	return dg.GetCurrentPlayer(), nil
 }
