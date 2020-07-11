@@ -1,7 +1,6 @@
 package dvonn
 
 import (
-	"./utils"
 	"log"
 )
 
@@ -137,7 +136,7 @@ func (db *DvonnBoard) GetCountOfPiecesControlledBy(color ChipColor) int {
 */
 func (db *DvonnBoard) GetDisconnectedCells() []string {
 	redChipNodes := db.GetRedChipsIds()
-	visitedCells := utils.GetSet()
+	visitedCells := GetSet()
 
 	for _, nodeId := range redChipNodes {
 		visitedCells.AddMultiS(getNodesIdentifiers(db.traverseConnectedNodes(db.cells[nodeId])))
@@ -147,7 +146,7 @@ func (db *DvonnBoard) GetDisconnectedCells() []string {
 		}
 	}
 	if visitedCells.Size() < 49 { // cells are disconnected
-		cells := utils.GetSet()
+		cells := GetSet()
 		cells.AddMultiS(getBoardCellsIds())
 		return cells.DifferenceS(visitedCells)
 	}
