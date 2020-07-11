@@ -1,7 +1,7 @@
 package dvonn
 
 import (
-	"../utils"
+	"./utils"
 	"log"
 )
 
