@@ -15,14 +15,14 @@ func GetPlayer(name, id string, playerColor ChipColor) Player {
 	return Player{id, name, playerColor}
 }
 
-func (p *Player) GetId() string {
+func (p Player) GetId() string {
 	return p.id
 }
 
-func (p *Player) GetName() string {
+func (p Player) GetName() string {
 	return p.name
 }
 
-func (p *Player) GetPlayerColor() ChipColor {
+func (p Player) GetPlayerColor() ChipColor {
 	return p.playerColor
 }
