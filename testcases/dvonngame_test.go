@@ -2,6 +2,7 @@ package testcases
 
 import (
 	"../dvonn"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -197,3 +198,162 @@ func TestGameSample_01(t *testing.T) {
 		t.Error("winner score should be 14")
 	}
 }
+
+type GamePlayStore struct {
+	WhiteMoves []string
+	BlackMoves []string
+	WinnerRes *dvonn.MatchResult
+}
+
+func TestGame_02(t *testing.T) {
+	input := "{\"WhiteMoves\":[\"d4\",\"g1\",\"f3\",\"h5\",\"b1\",\"e1\",\"f1\",\"g2\",\"g3\",\"d1\",\"h3\",\"f4\",\"i2\",\"e3\",\"h2\",\"b4\",\"a2\",\"j4\",\"f5\",\"e5\",\"j5\",\"i4\",\"d3\",\"i1\",\"j2\",\"f1:e1\",\"h5:h4\",\"j2:i2\",\"h4:f2\",\"a2:b3\",\"h2:g1\",\"i2:g2\",\"g3:g2\",\"g2:c2\",\"f2:i5\",\"i4:h3\",\"d1:c1\",\"f4:f5\",\"d3:e4\",\"j5:i5\",\"b4:b3\"]," +
+		"\"BlackMoves\":[\"i5\",\"b2\",\"c2\",\"a3\",\"h1\",\"k5\",\"e2\",\"c5\",\"h4\",\"a1\",\"j3\",\"i3\",\"g4\",\"c1\",\"g5\",\"f2\",\"k4\",\"d5\",\"c4\",\"k3\",\"b3\",\"d2\",\"e4\",\"c3\",\"k5:j4\",\"k4:k3\",\"d5:e5\",\"h1:i1\",\"i1:k3\",\"c4:d4\",\"a1:b2\",\"d4:b2\",\"e5:e3\",\"i3:j4\",\"g4:f3\",\"j4:g1\",\"c3:c2\",\"d2:c1\",\"a3:b3\",\"g1:b1\"]," +
+		"\"WinnerRes\":{\"WinningColor\":\"BLACK\",\"WinnerScore\":19,\"LoserScore\":9}}"
+	gamePlayStr := &GamePlayStore{}
+	json.Unmarshal([]byte(input), gamePlayStr)
+
+	players := make([]dvonn.Player, 0)
+	player1 := dvonn.GetPlayer("amit", "amit1234", dvonn.WHITE)
+	player2 := dvonn.GetPlayer("kat", "1234amit", dvonn.BLACK)
+	players = append(players, player1)
+	players = append(players, player2)
+	dvonnGame := dvonn.GetDvonnGame(players, player1)
+	currentPlayer := player1
+
+	whiteMoves := gamePlayStr.WhiteMoves
+	blackMoves := gamePlayStr.BlackMoves
+	expectedWinner := gamePlayStr.WinnerRes
+
+	// start with white and go on playing the move for the next player
+	whiteCounter, blackCounter := 0, 0
+
+	for {
+		moveIds := make([]string, 0)
+		if dvonnGame.GetGamePhase() == dvonn.PLACEMENT_PHASE {
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				moveIds = append(moveIds, strings.ToLower(whiteMoves[whiteCounter]))
+				whiteCounter++
+			} else {
+				moveIds = append(moveIds, strings.ToLower(blackMoves[blackCounter]))
+				blackCounter++
+			}
+		} else {
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				moveIds = append(moveIds, strings.Split(strings.ToLower(whiteMoves[whiteCounter]), ":")...)
+				whiteCounter++
+			} else {
+				moveIds = append(moveIds, strings.Split(strings.ToLower(blackMoves[blackCounter]), ":")...)
+				blackCounter++
+			}
+		}
+
+		moveRes := dvonnGame.Move(currentPlayer, moveIds...)
+		if moveRes.IsGameOver() {
+			break
+		}
+		if !moveRes.IsActionSuccess() {
+			fmt.Println(moveRes.GetErrorCode())
+			fmt.Println(moveRes.GetErrorMessage())
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				whiteCounter -= 1
+			} else {
+				blackCounter -= 1
+			}
+		}
+		currentPlayer = moveRes.GetNextPlayer()
+	}
+
+	winner, err := dvonnGame.GetGameWinner()
+	if winner == nil || err != nil {
+		// game should have ended
+		t.Error("game should have ended by now")
+	}
+	if winner != nil && winner.GetWinnerColor() != expectedWinner.GetWinnerColor() {
+		t.Error("black should have won")
+	}
+
+	if winner != nil && winner.GetLoserScore() != expectedWinner.GetLoserScore() {
+		t.Error("loser score should be {}", expectedWinner.GetLoserScore())
+	}
+
+	if winner != nil && winner.GetWinnerScore() != expectedWinner.GetWinnerScore() {
+		t.Error("winner score should be {}", expectedWinner.GetWinnerScore())
+	}
+}
+
+func TestGame_03(t *testing.T) {
+	input := "{ \"WhiteMoves\": [ \"j4\", \"d4\", \"h4\", \"i3\", \"i2\", \"c5\", \"j3\", \"f5\", \"k4\", \"d5\", \"h1\", \"b1\", \"h3\", \"f2\", \"e1\", \"e2\", \"h5\", \"i4\", \"e3\", \"b4\", \"b2\", \"i5\", \"c4\", \"c3\", \"d2\", \"b1:b2\", \"d5:e4\", \"e1:e2\", \"e2:e4\", \"k4:j3\", \"e4:i4\", \"d2:d3\", \"f2:f1\", \"c5:b4\", \"d3:b3\", \"h1:i2\", \"b4:d4\", \"i2:i4\", \"i3:i4\", \"h4:i4\", \"c3:d4\", \"c4:d4\", \"d4:i4\" ]," +
+		" \"BlackMoves\": [ \"c1\", \"g1\", \"a3\", \"j5\", \"a1\", \"b3\", \"f1\", \"g3\", \"e5\", \"k5\", \"d3\", \"i1\", \"h2\", \"k3\", \"g5\", \"f4\", \"a2\", \"g4\", \"j2\", \"c2\", \"d1\", \"f3\", \"g2\", \"e4\", \"j2:k3\", \"a3:b3\", \"g5:h5\", \"e5:f5\", \"f3:g3\", \"f4:e3\", \"d1:c1\", \"g2:g3\", \"j5:i5\", \"h2:h3\", \"h3:j3\", \"a1:b2\", \"c2:c1\", \"g3:j3\", \"i5:k5\", \"a2:b2\", \"k3:k5\" ]," +
+		" \"WinnerRes\": { \"WinningColor\": \"BLACK\", \"WinnerScore\": 15, \"LoserScore\": 14 } }"
+	gamePlayStr := &GamePlayStore{}
+	json.Unmarshal([]byte(input), gamePlayStr)
+
+	players := make([]dvonn.Player, 0)
+	player1 := dvonn.GetPlayer("amit", "amit1234", dvonn.WHITE)
+	player2 := dvonn.GetPlayer("kat", "1234amit", dvonn.BLACK)
+	players = append(players, player1)
+	players = append(players, player2)
+	dvonnGame := dvonn.GetDvonnGame(players, player1)
+	currentPlayer := player1
+
+	whiteMoves := gamePlayStr.WhiteMoves
+	blackMoves := gamePlayStr.BlackMoves
+	expectedWinner := gamePlayStr.WinnerRes
+
+	// start with white and go on playing the move for the next player
+	whiteCounter, blackCounter := 0, 0
+
+	for {
+		moveIds := make([]string, 0)
+		if dvonnGame.GetGamePhase() == dvonn.PLACEMENT_PHASE {
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				moveIds = append(moveIds, strings.ToLower(whiteMoves[whiteCounter]))
+				whiteCounter++
+			} else {
+				moveIds = append(moveIds, strings.ToLower(blackMoves[blackCounter]))
+				blackCounter++
+			}
+		} else {
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				moveIds = append(moveIds, strings.Split(strings.ToLower(whiteMoves[whiteCounter]), ":")...)
+				whiteCounter++
+			} else {
+				moveIds = append(moveIds, strings.Split(strings.ToLower(blackMoves[blackCounter]), ":")...)
+				blackCounter++
+			}
+		}
+
+		moveRes := dvonnGame.Move(currentPlayer, moveIds...)
+		if moveRes.IsGameOver() {
+			break
+		}
+		if !moveRes.IsActionSuccess() {
+			fmt.Println(moveRes.GetErrorCode())
+			fmt.Println(moveRes.GetErrorMessage())
+			if currentPlayer.GetPlayerColor() == dvonn.WHITE {
+				whiteCounter -= 1
+			} else {
+				blackCounter -= 1
+			}
+		}
+		currentPlayer = moveRes.GetNextPlayer()
+	}
+
+	winner, err := dvonnGame.GetGameWinner()
+	if winner == nil || err != nil {
+		// game should have ended
+		t.Error("game should have ended by now")
+	}
+	if winner != nil && winner.GetWinnerColor() != expectedWinner.GetWinnerColor() {
+		t.Error("black should have won")
+	}
+
+	if winner != nil && winner.GetLoserScore() != expectedWinner.GetLoserScore() {
+		t.Error("loser score should be {}", expectedWinner.GetLoserScore())
+	}
+
+	if winner != nil && winner.GetWinnerScore() != expectedWinner.GetWinnerScore() {
+		t.Error("winner score should be {}", expectedWinner.GetWinnerScore())
+	}
+}
+
