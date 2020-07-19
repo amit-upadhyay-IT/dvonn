@@ -31,10 +31,10 @@ func (mr *MatchResult) GetWinnerColor() WinnerColor {
 	return mr.WinningColor
 }
 
-func (mr *MatchResult) GetWinnerScore() int {
-	return mr.WinnerScore
-}
-
-func (mr *MatchResult) GetLoserScore() int {
-	return mr.LoserScore
-}
+//func (mr *MatchResult) GetWinnerScore() int {
+//	return mr.WinnerScore
+//}
+//
+//func (mr *MatchResult) GetLoserScore() int {
+//	return mr.LoserScore
+//}

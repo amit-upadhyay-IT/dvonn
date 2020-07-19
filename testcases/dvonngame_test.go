@@ -190,11 +190,11 @@ func TestGameSample_01(t *testing.T) {
 		t.Error("black should have won")
 	}
 
-	if winner != nil && winner.GetLoserScore() != 13 {
+	if winner != nil && winner.LoserScore != 13 {
 		t.Error("loser score should be 13")
 	}
 
-	if winner != nil && winner.GetWinnerScore() != 14 {
+	if winner != nil && winner.WinnerScore != 14 {
 		t.Error("winner score should be 14")
 	}
 }
@@ -272,12 +272,12 @@ func TestGame_02(t *testing.T) {
 		t.Error("black should have won")
 	}
 
-	if winner != nil && winner.GetLoserScore() != expectedWinner.GetLoserScore() {
-		t.Error("loser score should be {}", expectedWinner.GetLoserScore())
+	if winner != nil && winner.LoserScore != expectedWinner.LoserScore {
+		t.Error("loser score should be {}", expectedWinner.LoserScore)
 	}
 
-	if winner != nil && winner.GetWinnerScore() != expectedWinner.GetWinnerScore() {
-		t.Error("winner score should be {}", expectedWinner.GetWinnerScore())
+	if winner != nil && winner.WinnerScore != expectedWinner.WinnerScore {
+		t.Error("winner score should be {}", expectedWinner.WinnerScore)
 	}
 }
 
@@ -348,12 +348,12 @@ func TestGame_03(t *testing.T) {
 		t.Error("black should have won")
 	}
 
-	if winner != nil && winner.GetLoserScore() != expectedWinner.GetLoserScore() {
-		t.Error("loser score should be {}", expectedWinner.GetLoserScore())
+	if winner != nil && winner.LoserScore != expectedWinner.LoserScore {
+		t.Error("loser score should be {}", expectedWinner.LoserScore)
 	}
 
-	if winner != nil && winner.GetWinnerScore() != expectedWinner.GetWinnerScore() {
-		t.Error("winner score should be {}", expectedWinner.GetWinnerScore())
+	if winner != nil && winner.WinnerScore != expectedWinner.WinnerScore {
+		t.Error("winner score should be {}", expectedWinner.WinnerScore)
 	}
 }
 
