@@ -79,7 +79,9 @@ func (hn *HexNode) Empty() {
 	hn.chipsStack = make([]Chip, 0)
 }
 
-func (hn *HexNode) IsCompletelySurrounded() bool {
+// changes: since, this method doesn't have a hard check on the length of chip stack for surroundings
+// this, making this method for only internal uses only.
+func (hn *HexNode) isCompletelySurrounded() bool {
 	return !(len(hn.GetChildNodes()) < 6)
 }
 
@@ -89,7 +91,7 @@ func (hn *HexNode) IsCompletelySurrounded() bool {
  should not have any chip kept on it, i.e. stack length should be zero
  */
 func (hn *HexNode) HasFreeEdge() bool {
-	if hn.IsCompletelySurrounded() {
+	if hn.isCompletelySurrounded() {
 		for _, node := range hn.GetChildNodes() {
 			if node.GetStackLength() == 0 {
 				return true
