@@ -99,7 +99,7 @@ func (db *DvonnBoard) GetRedChipsIds() []string {
 		}
 	}
 	if len(res) > 3 {
-		log.Fatal("can not have more than 3 red chips in a game, please check the issue")
+		log.Fatal("[DvonnBoard.getRedChipsId()]can not have more than 3 red chips in a game, please check the issue")
 	}
 	return res
 }
@@ -135,10 +135,10 @@ func (db *DvonnBoard) GetCountOfPiecesControlledBy(color ChipColor) int {
 			- The ids which aren't visited will be the disconnected nodes
 */
 func (db *DvonnBoard) GetDisconnectedCells() []string {
-	redChipNodes := db.GetRedChipsIds()
+	redChipIds := db.GetRedChipsIds()
 	visitedCells := GetSet()
 
-	for _, nodeId := range redChipNodes {
+	for _, nodeId := range redChipIds {
 		visitedCells.AddMultiS(getNodesIdentifiers(db.traverseConnectedNodes(db.cells[nodeId])))
 
 		if visitedCells.Size() == 49 { // if from one cell we could visit all nodes, then all cells are connected for sure
@@ -215,7 +215,7 @@ func (db *DvonnBoard) GetPossibleMoveFor(id string) []*HexNode {
 	res := make([]*HexNode, 0)
 	if node, ok := db.cells[id]; ok {
 		// get possible adjacent nodes
-		adjacentNodes := node.GetStraightAdjacentOnLevel(db.cells[id].GetStackLength())
+		adjacentNodes := node.GetStraightAdjacentOnLevel(node.GetStackLength())
 
 		// check those places should not be empty
 		for _, adjNode := range adjacentNodes {
