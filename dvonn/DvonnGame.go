@@ -28,11 +28,7 @@ func (dg *DvonnGame) GetBoard() *DvonnBoard {
 }
 
 func (dg *DvonnGame) togglePlayer() {
-	if dg.currentTurn.GetPlayerColor() == WHITE {
-		dg.currentTurn = dg.GetPlayerByColor(BLACK)
-	} else {
-		dg.currentTurn = dg.GetPlayerByColor(WHITE)
-	}
+	dg.currentTurn = dg.getOppositeColoredPlayer(dg.currentTurn)
 }
 
 func (dg *DvonnGame) getOppositeColoredPlayer(player Player) Player {
@@ -267,10 +263,7 @@ func (dg *DvonnGame) _canMove(player Player, originId, destId string) MoveResult
 
 // validate player, i.e. only the current player should be able to make movement
 func (dg *DvonnGame) isPlayerTurnValid(player Player) bool {
-	if player.GetPlayerColor() != dg.currentTurn.GetPlayerColor() {
-		return false
-	}
-	return true
+	return player.GetPlayerColor() == dg.currentTurn.GetPlayerColor()
 }
 
 /*
@@ -322,7 +315,6 @@ func (dg *DvonnGame) IsGameOver() bool {
 
 /*
  Returns winner color
- if the match is drawn then returns nil
 */
 func (dg *DvonnGame) GetGameWinner() (*MatchResult, error) {
 	var winnerColor WinnerColor
@@ -341,6 +333,7 @@ func (dg *DvonnGame) GetGameWinner() (*MatchResult, error) {
 			loserScore = playerOnePieces
 		} else {
 			winnerColor = WINNER_DRAW
+			winnerScore, loserScore = playerOnePieces, playerTwoPieces
 		}
 		return &MatchResult{LoserScore: loserScore, WinnerScore:winnerScore, WinningColor:winnerColor}, nil
 	}
