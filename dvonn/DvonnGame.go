@@ -204,6 +204,14 @@ func (dg *DvonnGame) _canPlace(player Player, destId string) MoveResult {
 		errM, nil, PLACEMENT_PHASE)
 }
 
+/*
+ player in this method is the current player who is making the move in the game.
+ NOTE: the order of validation is important below, eg: validating if node at origin id should
+ 		have same color as that of the current player playing move should be done after we are
+		done validating that originId/destinationId is valid (i.e. non-empty and have free adjacent)
+ Violating the order wouldn't always impact, but for proper validation message to client, it gets necessary
+ to maintain order.
+ */
 func (dg *DvonnGame) _canMove(player Player, originId, destId string) MoveResult {
 	isValid := true
 	errM := ""
@@ -256,6 +264,16 @@ func (dg *DvonnGame) _canMove(player Player, originId, destId string) MoveResult
 		return GetMoveResult(dg.IsGameOver(), false,
 			ERROR_INVALID_DESTINATION_SELECTED, errM, errors.New(errM), MOVEMENT_PHASE)
 	}
+
+	// validate if origin node has same color as that of the current turn player color
+	topChip, _ := dg.GetBoard().GetCells()[originId].GetTopChips()
+	if isValid = topChip.GetColor() == player.GetPlayerColor(); !isValid {
+		errM = "Player with "+string(player.GetPlayerColor())+" can not move chip with "+string(topChip.GetColor())+" color"
+		return GetMoveResult(dg.IsGameOver(), false,
+			ERROR_WRONG_ORIGIN_SELECTED, errM, errors.New(errM), MOVEMENT_PHASE)
+	}
+
+
 	// all validation are passed
 	return GetMoveResult(dg.IsGameOver(), true,
 		ERROR_UNKNOWN, "", nil, MOVEMENT_PHASE)
