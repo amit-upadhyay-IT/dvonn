@@ -100,7 +100,7 @@ func connectCells(cells map[string]*HexNode) {
 	cells["d5"].SetChildNode(UPPER_EDGE, cells["c5"])
 	cells["d5"].SetChildNode(BOTTON_EDGE, cells["e5"])
 	cells["d5"].SetChildNode(LEFTBOTTON_EDGE, cells["d4"])
-	cells["d5"].SetChildNode(LEFTUPPER_EDGE, cells["e4"])
+	cells["d5"].SetChildNode(LEFTUPPER_EDGE, cells["c4"])
 
 	cells["e1"].SetChildNode(UPPER_EDGE, cells["d1"])
 	cells["e1"].SetChildNode(RIGHTUPPER_EDGE, cells["e2"])
