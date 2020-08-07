@@ -8,18 +8,28 @@ import (
 type DvonnGame struct {
 	board       *DvonnBoard
 	players     []Player
-	currentTurn Player
+	currentTurn Player `json:"Curr"`
 	gamePhase   GamePhase
 	unusedChips int
+
+	// some props for undo/redo operation
+	gameStateStack []*DvonnGame
+	HEAD int  // an index pointer which shall be pointing to the current game state
+
+	// to storing game state, we shalling be storing the moves played and then simulate those steps
+	movesPlayed [][]string
 }
 
 func GetDvonnGame(players []Player, whitePlayer Player) *DvonnGame {
 	return &DvonnGame{
-		board:       GetDvonnBoard(),
-		players:     players,
-		currentTurn: whitePlayer,
-		gamePhase:   PLACEMENT_PHASE,
-		unusedChips: 49,
+		board:          GetDvonnBoard(),
+		players:        players,
+		currentTurn:    whitePlayer,
+		gamePhase:      PLACEMENT_PHASE,
+		unusedChips:    49,
+		movesPlayed:    make([][]string, 0),
+		gameStateStack: make([]*DvonnGame, 0),
+		HEAD:           0,
 	}
 }
 
@@ -106,6 +116,15 @@ func (dg *DvonnGame) Move(player Player, paths ...string) MoveResult {
 	if moveRes.isActionSuccess {
 		nextPlayer, _ := dg.GetNextTurnPlayer()
 		moveRes.SetNextPlayer(nextPlayer)
+		// balance out the HEAD pointer and game state stack
+		if len(dg.gameStateStack) > 0 {
+			dg.gameStateStack = dg.gameStateStack[:dg.HEAD]
+		}
+		dg.gameStateStack = append(dg.gameStateStack, dg)
+		dg.HEAD++
+		moves := make([]string, 0)
+		moves = append(moves, paths...)
+		dg.movesPlayed = append(dg.movesPlayed, moves)
 	} else {
 		// validation failure occurred, so allow the same player to make the same move as the game isn't finished yet
 		moveRes.SetNextPlayer(player)
@@ -376,3 +395,46 @@ func (dg *DvonnGame) GetNextTurnPlayer() (Player, error) {
 	// since no valid move is left for the other player, so current player should continue playing
 	return dg.GetCurrentPlayer(), nil
 }
+
+
+/*
+ Usage of this method: this method doesn't mutate the current state rather, it will return one state which will be
+ the previous state. So, the caller needs to make sure that instance is being reassigned to what is being returned from hear
+
+ In case of consecutive undo operation:
+	method checks if HEAD pointer is pointing to 0, then it can't perform undo operation and this method will return
+	a flag to indicate that
+
+ Each time we perform a successful undo operation we decrement the HEAD pointer
+ And on any successful move post undo operation we pop off the top elements after HEAD pointer from the game state stack
+ to balance the game state stack and HEAD pointer.
+ */
+func (dg *DvonnGame) Undo() (*DvonnGame, bool) {
+	if dg.HEAD <= 0 || len(dg.gameStateStack) <= 0 || dg.HEAD > len(dg.gameStateStack) {
+		return nil, false
+	}
+	dg.HEAD--
+	return dg.gameStateStack[dg.HEAD], true
+}
+
+
+/*
+ Usage of this method: It doesn't mutate the game state, for that the caller need to make sure for reinitializing
+ the game state with what is returned from this method.
+
+ NOTE: redo can only be performed when last step would be undo operation.
+ So, there is a clear validation for the HEAD pointer must be smaller than the game state stack length.
+
+ if undo would have been done in last step then dg.HEAD would be lesser than the length of game state stack
+ coz, an decrement for the HEAD must have happened
+ if undo wasn't done in the last step then the length of the game state stack would match the HEAD (NOTE:
+ in case of normal play steps I do pop off the extra top elements above the HEAD to maintain consistency)
+ */
+func (dg *DvonnGame) Redo() (*DvonnGame, bool) {
+
+	if dg.HEAD >= len(dg.gameStateStack) || len(dg.gameStateStack) == 0 || dg.HEAD == 0 {
+		return nil, false
+	}
+	return dg.gameStateStack[dg.HEAD], true
+}
+
