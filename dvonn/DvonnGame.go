@@ -1,6 +1,9 @@
 package dvonn
 
 import (
+	"bytes"
+	"encoding/gob"
+	"encoding/json"
 	"errors"
 	"log"
 )
@@ -8,12 +11,11 @@ import (
 type DvonnGame struct {
 	board       *DvonnBoard
 	players     []Player
-	currentTurn Player `json:"Curr"`
+	currentTurn Player
 	gamePhase   GamePhase
 	unusedChips int
 
 	// some props for undo/redo operation
-	gameStateStack []*DvonnGame
 	HEAD int  // an index pointer which shall be pointing to the current game state
 
 	// to storing game state, we shalling be storing the moves played and then simulate those steps
@@ -28,8 +30,7 @@ func GetDvonnGame(players []Player, whitePlayer Player) *DvonnGame {
 		gamePhase:      PLACEMENT_PHASE,
 		unusedChips:    49,
 		movesPlayed:    make([][]string, 0),
-		gameStateStack: make([]*DvonnGame, 0),
-		HEAD:           0,
+		HEAD:           -1,
 	}
 }
 
@@ -117,10 +118,9 @@ func (dg *DvonnGame) Move(player Player, paths ...string) MoveResult {
 		nextPlayer, _ := dg.GetNextTurnPlayer()
 		moveRes.SetNextPlayer(nextPlayer)
 		// balance out the HEAD pointer and game state stack
-		if len(dg.gameStateStack) > 0 {
-			dg.gameStateStack = dg.gameStateStack[:dg.HEAD]
+		if len(dg.movesPlayed) > 0 {
+			dg.movesPlayed = dg.movesPlayed[:dg.HEAD+1]
 		}
-		dg.gameStateStack = append(dg.gameStateStack, dg)
 		dg.HEAD++
 		moves := make([]string, 0)
 		moves = append(moves, paths...)
@@ -406,15 +406,26 @@ func (dg *DvonnGame) GetNextTurnPlayer() (Player, error) {
 	a flag to indicate that
 
  Each time we perform a successful undo operation we decrement the HEAD pointer
- And on any successful move post undo operation we pop off the top elements after HEAD pointer from the game state stack
+ And on any successful move post undo operation we pop off the top elements after HEAD pointer from the movesPlayed stack
  to balance the game state stack and HEAD pointer.
  */
 func (dg *DvonnGame) Undo() (*DvonnGame, bool) {
-	if dg.HEAD <= 0 || len(dg.gameStateStack) <= 0 || dg.HEAD > len(dg.gameStateStack) {
+	if dg.HEAD <= 0 || len(dg.movesPlayed) <= 0 || dg.HEAD > len(dg.movesPlayed) {
+		return nil, false
+	}
+	// if game is over, undo should not be applicable
+	if dg.IsGameOver() {
 		return nil, false
 	}
 	dg.HEAD--
-	return dg.gameStateStack[dg.HEAD], true
+	// till HEAD pointer simulate the game and return that game instance
+	stepsToSimulate := 0
+	newGameInstance := GetDvonnGame(dg.GetPlayers(), dg.GetPlayerByColor(WHITE))
+	for stepsToSimulate <= dg.HEAD {
+		newGameInstance.Move(newGameInstance.GetCurrentPlayer(), dg.movesPlayed[stepsToSimulate]...)
+		stepsToSimulate++
+	}
+	return newGameInstance, true
 }
 
 
@@ -423,18 +434,35 @@ func (dg *DvonnGame) Undo() (*DvonnGame, bool) {
  the game state with what is returned from this method.
 
  NOTE: redo can only be performed when last step would be undo operation.
- So, there is a clear validation for the HEAD pointer must be smaller than the game state stack length.
+ So, there is a clear validation for the HEAD pointer must be smaller than the movesPlayed stack length.
 
- if undo would have been done in last step then dg.HEAD would be lesser than the length of game state stack
+ if undo would have been done in last step then dg.HEAD would be lesser than the length of movesPlayed stack
  coz, an decrement for the HEAD must have happened
  if undo wasn't done in the last step then the length of the game state stack would match the HEAD (NOTE:
  in case of normal play steps I do pop off the extra top elements above the HEAD to maintain consistency)
  */
-func (dg *DvonnGame) Redo() (*DvonnGame, bool) {
+func (dg *DvonnGame) Redo() bool {
 
-	if dg.HEAD >= len(dg.gameStateStack) || len(dg.gameStateStack) == 0 || dg.HEAD == 0 {
-		return nil, false
+	if dg.HEAD >= len(dg.movesPlayed) || len(dg.movesPlayed) == 0 || dg.HEAD == 0 {
+		return false
 	}
-	return dg.gameStateStack[dg.HEAD], true
+	dg.HEAD++
+	dg.Move(dg.GetCurrentPlayer(), dg.movesPlayed[dg.HEAD]...)
+	return true
 }
 
+// Clone deep-copies a to b
+func Clone(a, b interface{}) {
+
+	buff := new(bytes.Buffer)
+	enc := gob.NewEncoder(buff)
+	dec := gob.NewDecoder(buff)
+	enc.Encode(a)
+	dec.Decode(b)
+}
+
+// DeepCopy deepcopies a to b using json marshaling
+func DeepCopy(a, b interface{}) {
+	byt, _ := json.Marshal(a)
+	json.Unmarshal(byt, b)
+}
