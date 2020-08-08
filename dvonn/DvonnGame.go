@@ -117,7 +117,9 @@ func (dg *DvonnGame) Move(player Player, paths ...string) MoveResult {
 	if moveRes.isActionSuccess {
 		nextPlayer, _ := dg.GetNextTurnPlayer()
 		moveRes.SetNextPlayer(nextPlayer)
-		// balance out the HEAD pointer and game state stack
+		// balance out the HEAD pointer and game state stack, why is this balancing required?
+		// coz, if last operation was undo or redo, then HEAD pointer must be not in sync with the movesPlayed, so
+		// we need to remove the moves played from this stack and undo operation has been done
 		if len(dg.movesPlayed) > 0 {
 			dg.movesPlayed = dg.movesPlayed[:dg.HEAD+1]
 		}
