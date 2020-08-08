@@ -282,3 +282,270 @@ func TestGame_02(t *testing.T) {
 }
 
 
+func TestUndoRedo_01(t *testing.T) {
+	players := make([]dvonn.Player, 0)
+	player1 := dvonn.GetPlayer("amit", "amit1234", dvonn.WHITE)
+	player2 := dvonn.GetPlayer("kat", "1234amit", dvonn.BLACK)
+	players = append(players, player1)
+	players = append(players, player2)
+	dvonnGame := dvonn.GetDvonnGame(players, player1)
+
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i1", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k3", "k4")
+	fmt.Println(dvonnGame.GetBoard().GetCells()["d1"].GetStackLength())
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d1", "e2")
+	fmt.Println(dvonnGame.GetBoard().GetCells()["d1"].GetStackLength())
+	// perform undo
+	newGameInstance, hasDone := dvonnGame.Undo()
+	if hasDone {
+		dvonnGame = newGameInstance
+	}
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d5", "c5")
+	fmt.Println(dvonnGame.GetBoard().GetCells()["d1"].GetStackLength())
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h1", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j2", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f1", "g1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h2", "g1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g2", "g1")
+	newGameInstance, hasDone = dvonnGame.Undo()
+	if hasDone {
+		dvonnGame = newGameInstance
+	}
+	fmt.Println(dvonnGame.GetBoard().GetCells()["g2"].GetStackLength())
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g2", "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g3", "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i3", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j3", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c4", "c5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a2", "a3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b4", "a3")
+
+	if dvonnGame.GetCurrentPlayer().GetPlayerColor() != dvonn.WHITE {
+		t.Error("it should be white turn")
+	}
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b3", "a3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e5", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e4", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g5", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f4", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f3", "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d3", "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e2", "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c3", "d4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d2", "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h5", "g4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h3", "h4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i5", "h4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j5", "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g4", "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k4", "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h4", "e1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k5", "j4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d1", "c1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c2", "b1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c1", "a1")
+	// black is winner, white count = 3, blackCount = 14
+	if !dvonnGame.IsGameOver() {
+		t.Error("game should be over by now")
+	}
+	winnerRes, err := dvonnGame.GetGameWinner()
+	if err != nil {
+		t.Error("Error found")
+	}
+	if winnerRes.GetWinnerColor() != dvonn.WINNER_BLACK {
+		t.Error("winner should be black")
+	}
+	if winnerRes.WinnerScore != 14 {
+		t.Error("winner should have 14 score points")
+	}
+	if winnerRes.LoserScore != 3 {
+		t.Error("loser should have 3 score points")
+	}
+}
+
+
+
+func TestUndoRedo_02(t *testing.T) {
+	players := make([]dvonn.Player, 0)
+	player1 := dvonn.GetPlayer("amit", "amit1234", dvonn.WHITE)
+	player2 := dvonn.GetPlayer("kat", "1234amit", dvonn.BLACK)
+	players = append(players, player1)
+	players = append(players, player2)
+	dvonnGame := dvonn.GetDvonnGame(players, player1)
+
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i1", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k3", "k4")
+	fmt.Println(dvonnGame.GetBoard().GetCells()["d1"].GetStackLength())
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d1", "e2")
+	fmt.Println(dvonnGame.GetBoard().GetCells()["d1"].GetStackLength())
+	// perform undo
+	newGameInstance, hasDone := dvonnGame.Undo()
+	if hasDone {
+		dvonnGame = newGameInstance
+	}
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d5", "c5")
+	fmt.Println(dvonnGame.GetBoard().GetCells()["d1"].GetStackLength())
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h1", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j2", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f1", "g1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h2", "g1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g2", "g1")
+	newGameInstance, hasDone = dvonnGame.Undo()
+	if hasDone {
+		dvonnGame = newGameInstance
+	}
+	fmt.Println(dvonnGame.GetBoard().GetCells()["g2"].GetStackLength())
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g2", "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g3", "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i3", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j3", "i2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c4", "c5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "a2", "a3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b4", "a3")
+
+	if dvonnGame.GetCurrentPlayer().GetPlayerColor() != dvonn.WHITE {
+		t.Error("it should be white turn")
+	}
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "b3", "a3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e5", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e4", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g5", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f4", "f5")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "f3", "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d3", "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "e2", "f2")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c3", "d4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d2", "e3")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h5", "g4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h3", "h4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "i5", "h4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "j5", "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "g4", "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k4", "i4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "h4", "e1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "k5", "j4")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "d1", "c1")
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c2", "b1")
+
+	dvonnGame.Move(dvonnGame.GetCurrentPlayer(), "c1", "a1")
+
+	_, undoDone := dvonnGame.Undo()
+	if undoDone != false {
+		t.Error("Undo is not possible after game is over")
+	}
+	// black is winner, white count = 3, blackCount = 14
+	if !dvonnGame.IsGameOver() {
+		t.Error("game should be over by now")
+	}
+	winnerRes, err := dvonnGame.GetGameWinner()
+	if err != nil {
+		t.Error("Error found")
+	}
+	if winnerRes.GetWinnerColor() != dvonn.WINNER_BLACK {
+		t.Error("winner should be black")
+	}
+	if winnerRes.WinnerScore != 14 {
+		t.Error("winner should have 14 score points")
+	}
+	if winnerRes.LoserScore != 3 {
+		t.Error("loser should have 3 score points")
+	}
+}
